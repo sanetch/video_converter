@@ -188,11 +188,11 @@ do
 			echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: Start ffmpeg conversion of $work_tmp_dir/$file_name_ext" >> $log_file
 			ffmpeg_src="$work_tmp_dir/$file_name_ext"
 			ffmpeg_dst="$work_tmp_dir/conv_$file_name.$desired_ext"
-			ffmpeg_command="/usr/bin/ffmpeg -i $ffmpeg_src -c:v libx265 -vtag hvc1 -c:a copy $ffmpeg_dst -y"
+			ffmpeg_command="/usr/bin/ffmpeg -i $ffmpeg_src -b 1000k -vcodec libx265 -crf 19 -filter:v fps=fps=24 $ffmpeg_dst -y"
 			echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: Command: $ffmpeg_command" >> $log_file
 # Command 2: Convert the copy file in tmp folder to con_FILENAME.EXTENSION version
-			if /usr/bin/ffmpeg -i $ffmpeg_src -c:v libx265 -vtag hvc1 -c:a copy $ffmpeg_dst -y ; then
-			#if /usr/bin/ffmpeg -i $ffmpeg_src -b 1000k -vcodec libx265 -crf 19 -filter:v fps=fps=24 $ffmpeg_dst -y ; then
+			#if /usr/bin/ffmpeg -i $ffmpeg_src -c:v libx265 -vtag hvc1 -c:a copy $ffmpeg_dst -y ; then
+			if /usr/bin/ffmpeg -i $ffmpeg_src -b 1000k -vcodec libx265 -crf 19 -filter:v fps=fps=24 $ffmpeg_dst -y ; then
 				echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: Ended ffmpeg conversion in $work_tmp_dir/conv_$file_name.$desired_ext" >> $log_file
 				converted_files=$((converted_files + 1))
 				new_file_size=$(wc -c <"$work_tmp_dir/conv_$file_name.$desired_ext")
