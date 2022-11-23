@@ -107,12 +107,12 @@ echo "$(date): Script started..." > $log_file
 echo "         />_____________________________________________________" >> $log_file
 echo "[########[]_______________________T_I_L_L____V_A_L_H_A_L________>" >> $log_file
 echo "         \>" >> $log_file
-echo -e "Work dir: \t\t\t\t\t\t$work_dir" >> $log_file
-echo -e "work_tmp_dir: \t\t\t\t\t$work_tmp_dir" >> $log_file
+echo -e "Work dir: \t\t\t\t$work_dir" >> $log_file
+echo -e "work_tmp_dir: \t\t\t\t$work_tmp_dir" >> $log_file
 echo -e "Desired output format: \t\t\t$desired_ext" >> $log_file
 echo -e "Desired output encoding: \t\t$desired_enc" >> $log_file
-echo -e "log_file: \t\t\t\t\t\t$log_file" >> $log_file
-echo -e "video_dir: \t\t\t\t\t\t$video_dir" >> $log_file
+echo -e "log_file: \t\t\t\t$log_file" >> $log_file
+echo -e "video_dir: \t\t\t\t$video_dir" >> $log_file
 echo $spacing >> $log_file
 # Pre-flight checks
 echo "Pre-flight checks:" >> $log_file
