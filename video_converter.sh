@@ -170,6 +170,7 @@ for line in $lines
 #find $video_dir \( -name "*.avi" -o -name "*.mkv" -o -name "*.mp4" \) | while read line
 do
 	echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: Working on file: $line" >> $log_file
+	echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: Saved space until now: $((($old_files_total_space-$new_files_total_space)/1024/1024/1024)) GB" >> $log_file
 # Generate file variables
 	file_size=$(wc -c <"$line")
 	file_name_ext=$(basename "$line")
