@@ -10,12 +10,13 @@
 # Changelog:
 # 17.11.2022 - Andrea Suira: Modified the logs output with Err level, fixed conversion command, added encoding check and file size check
 # 18.11.2022 - Andrea Suira: Added total disk space usage report at the end of the script and fvl in extensions to convert
+# 24.11.2022 - Andrea Suira: Added a blacklist after the check of converted bigger files to avoid re-convert on next run
 
 # USER VARIABLES
 # Base folder on local machine where the operations/data should be stored during the porcess
-work_dir=/home/andy/Downloads/tmp/test
+work_dir="/home/andy/Documents/videoconv"
 # Folder where the Files to convert are stored
-video_dir=/home/andy/Downloads/tmp
+video_dir="/home/andy/Documents/videoconv/Movies"
 # Output format for converted files
 desired_ext=mkv
 # Encoded wanted for the converted files, files that already have this encoding will be skipped
@@ -28,6 +29,7 @@ work_tmp_dir=$work_dir/tmp # Temp folder to store the converted video, before ov
 log_dir=$work_dir/log # Logs folder
 log_file=$log_dir/$(date '+%Y-%m-%d_%H%M').log # Log file name, based on date
 log_date=$(date '+%Y-%m-%d %H:%M') # Date format to add in the log line
+blacklist_file=$work_dir/blacklist.txt # In this file will be printed the names of file that will not be re-converted, as example if the converted file is bigger than the source file
 converter_version=1 # The version of the converter, used to skip already converted files that doesn't meet the overwrite requirements, like size (smaller than converted) !!NOT IMPLEMENTED YET
 converted_files=0
 replaced_files=0
@@ -174,9 +176,18 @@ do
 	dir_name=$(dirname "$line")
 	file_name=$(basename "${line%.*}")
 	file_encoding=$(/usr/bin/ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=nokey=1:noprint_wrappers=1 $line)
-# Command 0: If the file is already in the desired encode, it will be skipped.
-	if [ "$file_encoding" == "$desired_enc" ] ; then
-		echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: File encoding already $desired_enc. Skip to next file." >> $log_file
+# Command 0: If the file is already in the desired encode or is in the blacklist, it will be skipped.
+	if grep -Fxq "$line" "$blacklist_file" ; then
+		blacklisted="yes"
+	else
+		blacklisted="no"
+	fi
+	if [ "$file_encoding" == "$desired_enc" ] || [ "$blacklisted" == "yes" ] ; then
+		if [ "$blacklisted" == "yes" ]; then
+			echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: File is blacklisted. Skip to next file." >> $log_file
+		else
+			echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: File encoding is $file_encoding, and match the desired: $desired_enc. Skip to next file." >> $log_file
+		fi
 	else
 		echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: Got original filename (with and without ext): $file_name_ext / $file_name" >> $log_file
 		echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: Got original folder: $dir_name" >> $log_file
@@ -200,6 +211,8 @@ do
 # Check if the new file is bigger than the original one, if it is, keep the old one and delete the new
 				if [ $new_file_size -ge $file_size ] && [ "$always_save_converted_file" == "no" ]; then
 					echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: The converted file is bigger than the original one. New file will be deleted, original untouched" >> $log_file
+					echo $line >> $blacklist_file
+					echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: File added to blacklist to prevent re-conversion next run" >> $log_file
 					if rm "$work_tmp_dir/$file_name_ext" ; then
 						echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: $work_tmp_dir/$file_name_ext deleted" >> $log_file
 					else
@@ -213,7 +226,7 @@ do
 						break
 					fi
 				else
-					echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: Converted file is smalled. Deleting source files (Original and pre-converted copy):" >> $log_file
+					echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: Converted file is smaller. Deleting source files (Original and pre-converted copy):" >> $log_file
 # Command 3: Delete the original file
 					if rm "$line" ; then
 						echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: $line deleted" >> $log_file
