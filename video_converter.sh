@@ -17,7 +17,7 @@
 # Base folder on local machine where the operations/data should be stored during the porcess
 work_dir="/home/user/Desktop"
 # Folder where the Files to convert are stored
-video_dir="/home/user/mnt/Videostation/Movies"
+video_dir="/home/user/videos/"
 # Output format for converted files
 desired_ext=mkv
 # Encoded wanted for the converted files, files that already have this encoding will be skipped
@@ -26,7 +26,7 @@ desired_enc=hevc #hevc=h265
 always_save_converted_file=no
 
 # BASE VARIABLES, keep unchanged if possible
-work_tmp_dir=$work_dir/tmp # Temp folder to store the converted video, before overwriting
+work_tmp_dir=/tmp # Temp folder to store the converted video, before overwriting
 log_dir=$work_dir/log # Logs folder
 log_file=$log_dir/$(date '+%Y-%m-%d_%H%M').log # Log file name, based on date
 log_date=$(date '+%Y-%m-%d %H:%M') # Date format to add in the log line
