@@ -11,13 +11,13 @@
 # 17.11.2022 - Andrea Suira: Modified the logs output with Err level, fixed conversion command, added encoding check and file size check
 # 18.11.2022 - Andrea Suira: Added total disk space usage report at the end of the script and fvl in extensions to convert
 # 24.11.2022 - Andrea Suira: Added a blacklist after the check of converted bigger files to avoid re-convert on next run
-# 25.01.2023 - Andrea Suira: Added files count in log file with percentage of work done/missing, removed full path from blacklist, only file name check
+# 25.01.2023 - Andrea Suira: Added files count in log file with percentage of work done/missing
 
 # USER VARIABLES
 # Base folder on local machine where the operations/data should be stored during the porcess
-work_dir="/home/andy/Documents/videoconv"
+work_dir="/home/user/Desktop"
 # Folder where the Files to convert are stored
-video_dir="/home/andy/Documents/videoconv/Movies"
+video_dir="/home/user/mnt/Videostation/Movies"
 # Output format for converted files
 desired_ext=mkv
 # Encoded wanted for the converted files, files that already have this encoding will be skipped
@@ -108,15 +108,16 @@ fi
 mkdir $work_tmp_dir
 mkdir $log_dir
 echo "$(date): Script started..." > $log_file
+echo "EMTPY LINE TO FILL WILL % OF DONE JOB" >> $log_file
 echo "         />_____________________________________________________" >> $log_file
 echo "[########[]_______________________T_I_L_L____V_A_L_H_A_L________>" >> $log_file
 echo "         \>" >> $log_file
-echo -e "Work dir: \t\t\t\t$work_dir" >> $log_file
-echo -e "work_tmp_dir: \t\t\t\t$work_tmp_dir" >> $log_file
-echo -e "Desired output format: \t\t\t$desired_ext" >> $log_file
-echo -e "Desired output encoding: \t\t$desired_enc" >> $log_file
-echo -e "log_file: \t\t\t\t$log_file" >> $log_file
-echo -e "video_dir: \t\t\t\t$video_dir" >> $log_file
+echo -e "Work dir:                $work_dir" >> $log_file
+echo -e "work_tmp_dir:            $work_tmp_dir" >> $log_file
+echo -e "Desired output format:   $desired_ext" >> $log_file
+echo -e "Desired output encoding: $desired_enc" >> $log_file
+echo -e "log_file:                $log_file" >> $log_file
+echo -e "video_dir:               $video_dir" >> $log_file
 echo $spacing >> $log_file
 # Pre-flight checks
 echo "Pre-flight checks:" >> $log_file
@@ -137,6 +138,15 @@ else
 	echo "$(date '+%Y-%m-%d %H:%M') - $CRI_LOG: The Videos Dir ($video_dir) did not exist or is not writable" >> $log_file
 	echo $spacing >> $log_file
 	exit 2
+fi
+# bc existence
+if ! command -v bc &> /dev/null
+then
+	echo "$(date '+%Y-%m-%d %H:%M') - $CRI_LOG: bc command could not be found. Is bc installed? (sudo apt install bc)" >> $log_file
+	echo $spacing >> $log_file
+	exit 2
+else
+	echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: bc package: OK" >> $log_file
 fi
 # ffmpeg existence
 if ! command -v ffmpeg &> /dev/null
@@ -171,9 +181,11 @@ lines=$(find $video_dir \( -name "*.avi" -o -name "*.mkv" -o -name "*.mp4" -o -n
 for line in $lines
 #find $video_dir \( -name "*.avi" -o -name "*.mkv" -o -name "*.mp4" \) | while read line
 do
-	files_processed=$files_processed+1
-	work_percentage=100/$files_count*$files_processed
-	echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: $files_processed\$files_count [$work_percentage%]" >> $log_file
+	((files_processed=files_processed+1))
+	work_percentage=$(echo "scale=2; 100 / $files_count * $files_processed" | bc)
+	echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: $files_processed/$files_count [$work_percentage%]" >> $log_file
+	job_status="Job status: $files_processed/$files_count [$work_percentage%]"
+	sed -i "2s#.*#$job_status#" $log_file
 	echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: Working on file: $line" >> $log_file
 	echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: Saved space until now: $((($old_files_total_space-$new_files_total_space)/1024/1024/1024)) GB" >> $log_file
 # Generate file variables
@@ -183,7 +195,7 @@ do
 	file_name=$(basename "${line%.*}")
 	file_encoding=$(/usr/bin/ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=nokey=1:noprint_wrappers=1 $line)
 # Command 0: If the file is already in the desired encode or is in the blacklist, it will be skipped.
-	if grep -Fxq "$file_name" "$blacklist_file" ; then
+	if grep -Fxq "$line" "$blacklist_file" ; then
 		blacklisted="yes"
 	else
 		blacklisted="no"
@@ -217,7 +229,7 @@ do
 # Check if the new file is bigger than the original one, if it is, keep the old one and delete the new
 				if [ $new_file_size -ge $file_size ] && [ "$always_save_converted_file" == "no" ]; then
 					echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: The converted file is bigger than the original one. New file will be deleted, original untouched" >> $log_file
-					echo $file_name >> $blacklist_file
+					echo $line >> $blacklist_file
 					echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: File added to blacklist to prevent re-conversion next run" >> $log_file
 					if rm "$work_tmp_dir/$file_name_ext" ; then
 						echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: $work_tmp_dir/$file_name_ext deleted" >> $log_file
