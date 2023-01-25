@@ -109,6 +109,7 @@ mkdir $work_tmp_dir
 mkdir $log_dir
 echo "$(date): Script started..." > $log_file
 echo "EMTPY LINE TO FILL WILL % OF DONE JOB" >> $log_file
+echo "EMTPY LINE TO FILL WILL SAVED GB" >> $log_file
 echo "         />_____________________________________________________" >> $log_file
 echo "[########[]_______________________T_I_L_L____V_A_L_H_A_L________>" >> $log_file
 echo "         \>" >> $log_file
@@ -188,6 +189,8 @@ do
 	sed -i "2s#.*#$job_status#" $log_file
 	echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: Working on file: $line" >> $log_file
 	echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: Saved space until now: $((($old_files_total_space-$new_files_total_space)/1024/1024/1024)) GB" >> $log_file
+	saved_gb_status="Saved space until now: $((($old_files_total_space-$new_files_total_space)/1024/1024/1024)) GB"
+	sed -i "3s#.*#$saved_gb_status#" $log_file
 # Generate file variables
 	file_size=$(wc -c <"$line")
 	file_name_ext=$(basename "$line")
