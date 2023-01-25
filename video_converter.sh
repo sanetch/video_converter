@@ -11,7 +11,7 @@
 # 17.11.2022 - Andrea Suira: Modified the logs output with Err level, fixed conversion command, added encoding check and file size check
 # 18.11.2022 - Andrea Suira: Added total disk space usage report at the end of the script and fvl in extensions to convert
 # 24.11.2022 - Andrea Suira: Added a blacklist after the check of converted bigger files to avoid re-convert on next run
-# 25.01.2023 - Andrea Suira: Added files count in log file with percentage of work done/missing
+# 25.01.2023 - Andrea Suira: Added files count in log file with percentage of work done/missing, removed full path from blacklist, only file name check
 
 # USER VARIABLES
 # Base folder on local machine where the operations/data should be stored during the porcess
@@ -183,7 +183,7 @@ do
 	file_name=$(basename "${line%.*}")
 	file_encoding=$(/usr/bin/ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=nokey=1:noprint_wrappers=1 $line)
 # Command 0: If the file is already in the desired encode or is in the blacklist, it will be skipped.
-	if grep -Fxq "$line" "$blacklist_file" ; then
+	if grep -Fxq "$file_name" "$blacklist_file" ; then
 		blacklisted="yes"
 	else
 		blacklisted="no"
@@ -217,7 +217,7 @@ do
 # Check if the new file is bigger than the original one, if it is, keep the old one and delete the new
 				if [ $new_file_size -ge $file_size ] && [ "$always_save_converted_file" == "no" ]; then
 					echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: The converted file is bigger than the original one. New file will be deleted, original untouched" >> $log_file
-					echo $line >> $blacklist_file
+					echo $file_name >> $blacklist_file
 					echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: File added to blacklist to prevent re-conversion next run" >> $log_file
 					if rm "$work_tmp_dir/$file_name_ext" ; then
 						echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: $work_tmp_dir/$file_name_ext deleted" >> $log_file
