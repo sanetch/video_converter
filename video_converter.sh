@@ -11,6 +11,7 @@
 # 17.11.2022 - Andrea Suira: Modified the logs output with Err level, fixed conversion command, added encoding check and file size check
 # 18.11.2022 - Andrea Suira: Added total disk space usage report at the end of the script and fvl in extensions to convert
 # 24.11.2022 - Andrea Suira: Added a blacklist after the check of converted bigger files to avoid re-convert on next run
+# 25.01.2023 - Andrea Suira: Added files count in log file with percentage of work done/missing
 
 # USER VARIABLES
 # Base folder on local machine where the operations/data should be stored during the porcess
@@ -35,6 +36,7 @@ converted_files=0
 replaced_files=0
 old_files_total_space=0
 new_files_total_space=0
+files_processed=0
 spacing="----------------------------------------------------------------------------------------------" # Ascii separator between files operations
 
 # SCRIPT VARIABLES, DON'T CHANGE
@@ -169,6 +171,9 @@ lines=$(find $video_dir \( -name "*.avi" -o -name "*.mkv" -o -name "*.mp4" -o -n
 for line in $lines
 #find $video_dir \( -name "*.avi" -o -name "*.mkv" -o -name "*.mp4" \) | while read line
 do
+	files_processed=$files_processed+1
+	work_percentage=100/$files_count*$files_processed
+	echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: $files_processed\$files_count [$work_percentage%]" >> $log_file
 	echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: Working on file: $line" >> $log_file
 	echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: Saved space until now: $((($old_files_total_space-$new_files_total_space)/1024/1024/1024)) GB" >> $log_file
 # Generate file variables
