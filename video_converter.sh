@@ -183,7 +183,7 @@ for line in $lines
 #find $video_dir \( -name "*.avi" -o -name "*.mkv" -o -name "*.mp4" \) | while read line
 do
 	((files_processed=files_processed+1))
-	work_percentage=$(echo "scale=2; 100 / $files_count * $files_processed" | bc)
+	work_percentage=$(echo "100 / $files_count * $files_processed" | bc)
 	echo "$(date '+%Y-%m-%d %H:%M') - $OK_LOG: $files_processed/$files_count [$work_percentage%]" >> $log_file
 	job_status="Job status: $files_processed/$files_count [$work_percentage%]"
 	sed -i "2s#.*#$job_status#" $log_file
